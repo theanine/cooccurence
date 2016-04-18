@@ -4,7 +4,7 @@ import sys
 import numpy as np
 from scipy import spatial
 
-PREDICTION_MODEL = "a"
+PREDICTION_MODEL = "b"
 
 def matrix_to_perc(matrix):
 	diagonal = np.diagonal(matrix)
@@ -18,8 +18,8 @@ def matrix_zero_diag(matrix):
 
 def matrix_cos_similarity(matrix):
 	# squared magnitude of preference vectors (number of occurrences)
-	square_mag = np.diag(matrix)
-
+	square_mag = np.diagonal(matrix)
+	
 	# inverse squared magnitude
 	inv_square_mag = 1 / square_mag
 
