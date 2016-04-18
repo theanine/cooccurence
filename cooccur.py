@@ -21,7 +21,8 @@ def matrix_cos_similarity(matrix):
 	square_mag = np.diagonal(matrix)
 	
 	# inverse squared magnitude
-	inv_square_mag = 1 / square_mag
+	with np.errstate(divide='ignore', invalid='ignore'):
+		inv_square_mag = 1 / square_mag
 
 	# if it doesn't occur, set it's inverse magnitude to zero (instead of inf)
 	inv_square_mag[np.isinf(inv_square_mag)] = 0
@@ -64,14 +65,14 @@ def predict(data, target):
 	
 	return np.round(prediction, 10)
 
-data = [[1, 0, 1],
-        [0, 1, 1],
-        [0, 1, 0]]
+data = [[1, 0, 1, 0],
+        [0, 1, 1, 0],
+        [0, 1, 0, 0]]
 print("data:")
 print(np.array(data))
 
 for i in range(0,3):
-	target = [0, 0, 0]
+	target = [0, 0, 0, 0]
 	target[i] = 1
 
 	prediction = predict(data, target)
