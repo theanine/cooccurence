@@ -37,6 +37,8 @@ def matrix_cos_similarity(matrix):
 
 def cooccurence(arr, cos_similarity, in_perc, zero_diag):
 	items = np.array(arr).astype(float)
+	# TODO: replace this with items.dot(items.T).todense() for sparse representation?
+	#       items also must be initialized as a scipy.sparse type
 	matrix = np.dot(items.T, items)
 	if cos_similarity:
 		matrix = matrix_cos_similarity(matrix)
