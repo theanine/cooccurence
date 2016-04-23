@@ -128,4 +128,7 @@ def test3():
 	print("cooccur:")
 	print(cooccur)
 
-test3()
+if __name__ == "__main__":
+	test1()
+	test2()
+	test3()
