@@ -19,7 +19,7 @@ def matrix_zero_diag(matrix):
 	return matrix
 
 def matrix_cos_similarity(matrix):
-	# squared magnitude of preference vectors (number of occurrences)
+	# squared magnitude of preference vectors
 	square_mag = np.diagonal(matrix)
 	
 	# inverse squared magnitude
