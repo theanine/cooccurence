@@ -2,16 +2,16 @@
 
 import sys
 import sqlite3
-import numpy as np
 from scipy import sparse
 
 def to_matrix(cur, table):
-	numrows = cur.execute("SELECT COUNT(DISTINCT userid) FROM " + table).fetchone()
-	numcols = cur.execute("SELECT COUNT(DISTINCT itemid) FROM " + table).fetchone()
+	numrows = cur.execute("SELECT COUNT(DISTINCT userid) FROM " + table).fetchone()[0]
+	numcols = cur.execute("SELECT COUNT(DISTINCT itemid) FROM " + table).fetchone()[0]
 
-	users = cur.execute("SELECT userid FROM " +  table).fetchall()
-	items = cur.execute("SELECT itemid FROM " +  table).fetchall()
-	quantities = cur.execute("SELECT quantity FROM " +  table).fetchall()
+	data = cur.execute("SELECT * FROM " +  table).fetchall()
+	users = [x[0] for x in data]
+	items = [x[1] for x in data]
+	quantities = [x[2] for x in data]
 	mat = sparse.csr_matrix((quantities, (users, items)), shape=(numrows, numcols))
 	print mat
 
@@ -26,7 +26,6 @@ def main():
 	print "db:", db_name, "table:", table
 
 	conn = sqlite3.connect(db_name)
-	conn.row_factory = lambda cursor, row: row[0]
 	cur = conn.cursor()
 	to_matrix(cur, table)
 
