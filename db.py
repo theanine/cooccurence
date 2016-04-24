@@ -8,10 +8,7 @@ def to_matrix(cur, table):
 	numrows = cur.execute("SELECT COUNT(DISTINCT userid) FROM " + table).fetchone()[0]
 	numcols = cur.execute("SELECT COUNT(DISTINCT itemid) FROM " + table).fetchone()[0]
 
-	data = cur.execute("SELECT * FROM " +  table).fetchall()
-	users = [x[0] for x in data]
-	items = [x[1] for x in data]
-	quantities = [x[2] for x in data]
+	users, items, quantities = zip(*cur.execute("SELECT * FROM " +  table).fetchall())
 	mat = sparse.csr_matrix((quantities, (users, items)), shape=(numrows, numcols))
 	print mat
 
