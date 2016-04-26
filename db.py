@@ -5,10 +5,11 @@ import sqlite3
 from scipy import sparse
 
 def to_matrix(cur, table):
-	numrows = cur.execute("SELECT COUNT(DISTINCT userid) FROM " + table).fetchone()[0]
-	numcols = cur.execute("SELECT COUNT(DISTINCT itemid) FROM " + table).fetchone()[0]
-
 	cols = map(lambda x:x[1], cur.execute("PRAGMA table_info(" + table + ");").fetchall()[0:3]);
+
+	numrows = cur.execute("SELECT COUNT(DISTINCT " + cols[0] + ") FROM " + table).fetchone()[0]
+	numcols = cur.execute("SELECT COUNT(DISTINCT " + cols [1] + ") FROM " + table).fetchone()[0]
+
 	users, items, quantities = zip(*cur.execute("SELECT " + ",".join(cols) + " FROM " +  table).fetchall())
 	mat = sparse.csc_matrix((quantities, (users, items)), shape=(numrows, numcols))
 	print mat
