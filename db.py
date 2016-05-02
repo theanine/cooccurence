@@ -4,8 +4,6 @@ import sys
 import sqlite3
 import numpy
 from scipy import sparse
-from itertools import count
-from collections import defaultdict
 from functools import singledispatch
 
 class DBApi:
