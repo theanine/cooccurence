@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 import sys
 import sqlite3
@@ -8,14 +8,14 @@ from collections import defaultdict
 
 class DBApi:
 	def dump(self):
-		print self.__matrix
+		print(self.__matrix)
 		for index, user in enumerate(self.__user_map):
 			print("User: " + str(index) + "->" + str(user))
 		for index, item in enumerate(self.__item_map):
 			print("Item: " + str(index) + "->" + str(item))
 
 	def load(self, db_file, table):
-		print "db:", db_file, "table:", table
+		print("db:", db_file, "table:", table)
 		conn = sqlite3.connect(db_file)
 		cursor = conn.cursor()
 		self.__to_matrix(cursor, table)
@@ -25,16 +25,20 @@ class DBApi:
 		users, items, quantities = zip(*cursor.execute("SELECT " + ",".join(cols) + " FROM " +  table).fetchall())
 		self.__user_map = list(set(users))
 		self.__item_map = list(set(items))
-		self.__matrix = sparse.csc_matrix(
-			(quantities, (map(self.__user_map.index, users), map(self.__item_map.index, items))),
-			shape=(len(self.__user_map), len(set(self.__item_map))))
+		
+		u_list = list(map(self.__user_map.index, users))
+		i_list = list(map(self.__item_map.index, items))
+		u_len  = len(self.__user_map)
+		i_len  = len(self.__item_map)
+		
+		self.__matrix = sparse.csc_matrix((quantities, (u_list, i_list)), shape=(u_len, i_len))
 
 if __name__ == "__main__":
 	try:
 		db_file = sys.argv[1]
 		table = sys.argv[2]
 	except IndexError:
-		print "Usage: ./db.py [db] [table]"
+		print("Usage: ./db.py [db] [table]")
 		sys.exit(1)
 	db_api = DBApi()
 	db_api.load(db_file, table)
