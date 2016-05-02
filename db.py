@@ -34,6 +34,8 @@ class DBApi:
 	def _(matrix, self):
 		print("sparse matrix")
 		self.__matrix = matrix
+		self.__user_map = range(matrix.shape[0])
+		self.__item_map = range(matrix.shape[1])
 
 	@__load.register(numpy.ndarray)
 	def _(matrix, self):
