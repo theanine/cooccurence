@@ -70,28 +70,10 @@ def predict(data, target):
 	if not cos_similarity:
 		prediction = np.true_divide(prediction, len(data))
 	
-	return np.round(prediction, 10)
+	return np.round(prediction, 2)
 
 def test1():
-	data = [[1, 0, 1, 0],
-	        [0, 1, 1, 0],
-	        [0, 1, 0, 0]]
-	print("data:")
-	print(np.array(data))
-
-	for i in range(0,3):
-		target = [0, 0, 0, 0]
-		target[i] = 1
-
-		prediction = predict(data, target)
-
-		print("target:")
-		print(np.array(target))
-
-		print("prediction:")
-		print(prediction)
-
-def test2():
+	print("==== " + sys._getframe().f_code.co_name + " ====")
 	data = np.array(
 		[[1, 1, 0, 1],
 		 [2, 0, 1, 1]])
@@ -119,7 +101,8 @@ def test2():
 	# print("cos_sim:")
 	# print(cos_sim)
 
-def test3():
+def test2():
+	print("==== " + sys._getframe().f_code.co_name + " ====")
 	data = [[1, 0, 1, 0],
 	        [0, 1, 1, 0],
 	        [0, 1, 0, 0]]
@@ -131,7 +114,62 @@ def test3():
 	print("cooccur:")
 	print(cooccur)
 
+def test3():
+	print("==== " + sys._getframe().f_code.co_name + " ====")
+	data = [[1, 0, 1, 0],
+	        [0, 1, 1, 0],
+	        [0, 1, 0, 0]]
+	print("data:")
+	print(np.array(data))
+
+	for i in range(0,4):
+		target = [0, 0, 0, 0]
+		target[i] = 1
+
+		prediction = predict(data, target)
+		print("target:     " + str(np.round(np.array(target), 1)))
+		print("prediction: " + str(prediction))
+
+def test4():
+	print("==== " + sys._getframe().f_code.co_name + " ====")
+	data = [[1, 0, 2, 0],
+	        [0, 1, 1, 0],
+	        [0, 1, 0, 0]]
+	print("data:")
+	print(np.array(data))
+
+	for i in range(0,4):
+		target = [0, 0, 0, 0]
+		target[i] = 1
+
+		prediction = predict(data, target)
+		print("target:     " + str(np.round(np.array(target), 1)))
+		print("prediction: " + str(prediction))
+
+def test5():
+	print("==== " + sys._getframe().f_code.co_name + " ====")
+	data = [[1, 0, 1, 1, 0],
+	        [0, 1, 1, 0, 0],
+	        [0, 1, 0, 0, 0]]
+	print("data:")
+	print(np.array(data))
+
+	for i in range(0,5):
+		target = [0, 0, 0, 0, 0]
+		target[i] = 1
+
+		prediction = predict(data, target)
+		print("target:     " + str(np.round(np.array(target), 1)))
+		print("prediction: " + str(prediction))
+
 if __name__ == "__main__":
-	test1()
-	test2()
-	test3()
+	# test1()
+	# test2()
+	# test3()
+	
+	for model in ("a" "b" "c" "d" "e" "f" "g" "h"):
+		PREDICTION_MODEL = model
+		print("Prediction model: " + model)
+		test4()
+		test5()
+		
