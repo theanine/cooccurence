@@ -6,35 +6,36 @@ from scipy import sparse
 from itertools import count
 from collections import defaultdict
 
-def dump(matrix, user_map, item_map):
-	print matrix
-	for index, user in enumerate(user_map):
-		print("User: " + str(index) + "->" + str(user))
-	for index, item in enumerate(item_map):
-		print("Item: " + str(index) + "->" + str(item))
+class DBApi:
+	def dump(self):
+		print self.__matrix
+		for index, user in enumerate(self.__user_map):
+			print("User: " + str(index) + "->" + str(user))
+		for index, item in enumerate(self.__item_map):
+			print("Item: " + str(index) + "->" + str(item))
 
-def to_matrix(cur, table):
-	cols = [x[1] for x in cur.execute("PRAGMA table_info(" + table + ");").fetchall()[0:3]];
+	def load(self, db_file, table):
+		print "db:", db_file, "table:", table
+		conn = sqlite3.connect(db_file)
+		cursor = conn.cursor()
+		self.__to_matrix(cursor, table)
 
-	users, items, quantities = zip(*cur.execute("SELECT " + ",".join(cols) + " FROM " +  table).fetchall())
-	user_map = list(set(users))
-	item_map = list(set(items))
-	mat = sparse.csc_matrix((quantities, (map(user_map.index, users), map(item_map.index, items))), shape=(len(user_map), len(set(item_map))))
-	dump(mat, user_map, item_map)
-
-def main():
-	try:
-		db_name = sys.argv[1]
-		table = sys.argv[2]
-	except IndexError:
-		print "No DB or table provided!\n./db.py [db] [table]"
-		sys.exit(1)
-
-	print "db:", db_name, "table:", table
-
-	conn = sqlite3.connect(db_name)
-	cur = conn.cursor()
-	to_matrix(cur, table)
+	def __to_matrix(self, cursor, table):
+		cols = [x[1] for x in cursor.execute("PRAGMA table_info(" + table + ");").fetchall()[0:3]];
+		users, items, quantities = zip(*cursor.execute("SELECT " + ",".join(cols) + " FROM " +  table).fetchall())
+		self.__user_map = list(set(users))
+		self.__item_map = list(set(items))
+		self.__matrix = sparse.csc_matrix(
+			(quantities, (map(self.__user_map.index, users), map(self.__item_map.index, items))),
+			shape=(len(self.__user_map), len(set(self.__item_map))))
 
 if __name__ == "__main__":
-	main()
+	try:
+		db_file = sys.argv[1]
+		table = sys.argv[2]
+	except IndexError:
+		print "Usage: ./db.py [db] [table]"
+		sys.exit(1)
+	db_api = DBApi()
+	db_api.load(db_file, table)
+	db_api.dump()
