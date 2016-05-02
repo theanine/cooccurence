@@ -7,7 +7,7 @@ from itertools import count
 from collections import defaultdict
 
 def to_matrix(cur, table):
-	cols = map(lambda x:x[1], cur.execute("PRAGMA table_info(" + table + ");").fetchall()[0:3]);
+	cols = [x[1] for x in cur.execute("PRAGMA table_info(" + table + ");").fetchall()[0:3]];
 
 	users, items, quantities = zip(*cur.execute("SELECT " + ",".join(cols) + " FROM " +  table).fetchall())
 	user_map = list(set(users))
