@@ -30,7 +30,7 @@ class DBApi:
 		conn_cursor = conn.cursor()
 		self.__to_matrix(conn_cursor, table)
 
-	@__load.register(sparse.csc.csc_matrix)
+	@__load.register(sparse.csc_matrix)
 	def _(matrix, self):
 		print("sparse matrix")
 		self.__matrix = matrix
@@ -39,7 +39,9 @@ class DBApi:
 
 	@__load.register(numpy.ndarray)
 	def _(matrix, self):
-		print("numpy array")
+		self.__matrix = sparse.csc_matrix(numpy.asmatrix(matrix))
+		self.__user_map = range(matrix.shape[0])
+		self.__item_map = range(matrix.shape[1])
 
 	def __to_matrix(self, conn_cursor, table):
 		cols = [x[1] for x in conn_cursor.execute("PRAGMA table_info(" + table + ");").fetchall()[0:3]];
