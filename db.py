@@ -7,6 +7,19 @@ from scipy import sparse
 from functools import singledispatch
 
 class DBApi:
+
+	@classmethod
+	def to_matrix(self, users, items, quantities):
+		user_map = list(set(users))
+		item_map = list(set(items))
+		
+		u_list = list(map(user_map.index, users))
+		i_list = list(map(item_map.index, items))
+		u_len  = len(user_map)
+		i_len  = len(item_map)
+		
+		return user_map, item_map, sparse.csc_matrix((quantities, (u_list, i_list)), shape=(u_len, i_len))
+
 	def dump(self):
 		print(self.__matrix)
 		for index, user in enumerate(self.__user_map):
@@ -28,33 +41,26 @@ class DBApi:
 		print("db:", db_file, "table:", table)
 		conn = sqlite3.connect(db_file)
 		conn_cursor = conn.cursor()
-		self.__to_matrix(conn_cursor, table)
+		self.__from_sql(conn_cursor, table)
 
 	@__load.register(sparse.csc_matrix)
-	def _(matrix, self):
+	def _(matrix, self, maps=(None, None)):
 		print("sparse matrix")
 		self.__matrix = matrix
-		self.__user_map = range(matrix.shape[0])
-		self.__item_map = range(matrix.shape[1])
+		self.__user_map = maps[0] if maps[0] else range(matrix.shape[0])
+		self.__item_map = maps[1] if maps[1] else range(matrix.shape[1])
+			
 
 	@__load.register(numpy.ndarray)
-	def _(matrix, self):
+	def _(matrix, self, maps=(None, None)):
 		self.__matrix = sparse.csc_matrix(numpy.asmatrix(matrix))
-		self.__user_map = range(matrix.shape[0])
-		self.__item_map = range(matrix.shape[1])
+		self.__user_map = maps[0] if maps[0] else range(matrix.shape[0])
+		self.__item_map = maps[1] if maps[1] else range(matrix.shape[1])
 
-	def __to_matrix(self, conn_cursor, table):
+	def __from_sql(self, conn_cursor, table):
 		cols = [x[1] for x in conn_cursor.execute("PRAGMA table_info(" + table + ");").fetchall()[0:3]];
 		users, items, quantities = zip(*conn_cursor.execute("SELECT " + ",".join(cols) + " FROM " +  table).fetchall())
-		self.__user_map = list(set(users))
-		self.__item_map = list(set(items))
-		
-		u_list = list(map(self.__user_map.index, users))
-		i_list = list(map(self.__item_map.index, items))
-		u_len  = len(self.__user_map)
-		i_len  = len(self.__item_map)
-		
-		self.__matrix = sparse.csc_matrix((quantities, (u_list, i_list)), shape=(u_len, i_len))
+		self.__user_map, self.__item_map, self.__matrix = self.to_matrix(users, items, quantities)
 
 def test_cli():
 	try:
@@ -71,20 +77,20 @@ def test_sparse():
 	row = numpy.array([9999, 9999, 1, 2, 2, 2])
 	col = numpy.array([9999, 2, 2, 9999, 1, 2])
 	data = numpy.array([1, 2, 3, 4, 5, 6])
-	matrix = sparse.csc_matrix((data, (row, col)), shape=(10000, 10000))
+	u, i, matrix = DBApi.to_matrix(row, col, data)
 	print(type(matrix))
 	db_api = DBApi()
-	db_api.load(matrix)
+	db_api.load(matrix, (u, i))
 	db_api.dump()
 
 def test_numpy():
 	row = numpy.array([9999, 9999, 1, 2, 2, 2])
 	col = numpy.array([9999, 2, 2, 9999, 1, 2])
 	data = numpy.array([1, 2, 3, 4, 5, 6])
-	matrix = sparse.csc_matrix((data, (row, col)), shape=(10000, 10000)).toarray()
-	print(type(matrix))
+	u, i, matrix = DBApi.to_matrix(row, col, data)
+	print(type(matrix.toarray()))
 	db_api = DBApi()
-	db_api.load(matrix)
+	db_api.load(matrix.toarray(), (u, i))
 	db_api.dump()
 
 if __name__ == "__main__":
