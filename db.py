@@ -18,14 +18,17 @@ class DBApi:
 		u_len  = len(user_map)
 		i_len  = len(item_map)
 		
-		return user_map, item_map, sparse.csc_matrix((quantities, (u_list, i_list)), shape=(u_len, i_len))
+		matrix = sparse.csc_matrix((quantities, (u_list, i_list)), shape=(u_len, i_len))
+		return user_map, item_map, matrix
 
 	def dump(self):
 		print(self.__matrix)
-		for index, user in enumerate(self.__user_map):
-			print("User: " + str(index) + "->" + str(user))
-		for index, item in enumerate(self.__item_map):
-			print("Item: " + str(index) + "->" + str(item))
+		if self.__user_map:
+			for index, user in enumerate(self.__user_map):
+				print("User: " + str(index) + "->" + str(user))
+		if self.__item_map:
+			for index, item in enumerate(self.__item_map):
+				print("Item: " + str(index) + "->" + str(item))
 
 	def load(self, db_file, table=False):
 		if table:
@@ -45,17 +48,15 @@ class DBApi:
 
 	@__load.register(sparse.csc_matrix)
 	def _(matrix, self):
-		print("sparse matrix")
 		self.__matrix = matrix
-		self.__user_map = list(set(matrix.nonzero()[0]))
-		self.__item_map = list(set(matrix.nonzero()[1]))
-			
+		self.__user_map = None
+		self.__item_map = None
 
 	@__load.register(numpy.ndarray)
 	def _(matrix, self):
 		self.__matrix = sparse.csc_matrix(numpy.asmatrix(matrix))
-		self.__user_map = list(set(matrix.nonzero()[0]))
-		self.__item_map = list(set(matrix.nonzero()[1]))
+		self.__user_map = None
+		self.__item_map = None
 
 	def __from_sql(self, conn_cursor, table):
 		cols = [x[1] for x in conn_cursor.execute("PRAGMA table_info(" + table + ");").fetchall()[0:3]];
@@ -84,10 +85,10 @@ def test_sparse():
 	db_api.dump()
 
 def test_numpy():
-	row = numpy.array([9999, 9999, 1, 2, 2, 2])
-	col = numpy.array([9999, 2, 2, 9999, 1, 2])
-	data = numpy.array([1, 2, 3, 4, 5, 6])
-	matrix = sparse.csc_matrix((data, (row, col)), shape=(10000, 10000)).toarray()
+	matrix = numpy.array(([[1, 0, 2],
+                           [0, 0, 3],
+                           [4, 5, 6]]))
+	print(matrix)
 	print(type(matrix))
 	db_api = DBApi()
 	db_api.load(matrix)
