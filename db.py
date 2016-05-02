@@ -2,9 +2,11 @@
 
 import sys
 import sqlite3
+import numpy
 from scipy import sparse
 from itertools import count
 from collections import defaultdict
+from functools import singledispatch
 
 class DBApi:
 	def dump(self):
@@ -15,14 +17,30 @@ class DBApi:
 			print("Item: " + str(index) + "->" + str(item))
 
 	def load(self, db_file, table):
+		return DBApi.__load(db_file, self, table)
+
+	@singledispatch
+	def __load(db_file, self, table):
+		raise NotImplementedError("Failed to recognize args")
+
+	@__load.register(str)
+	def _(db_file, self, table):
 		print("db:", db_file, "table:", table)
 		conn = sqlite3.connect(db_file)
-		cursor = conn.cursor()
-		self.__to_matrix(cursor, table)
+		conn_cursor = conn.cursor()
+		self.__to_matrix(conn_cursor, table)
 
-	def __to_matrix(self, cursor, table):
-		cols = [x[1] for x in cursor.execute("PRAGMA table_info(" + table + ");").fetchall()[0:3]];
-		users, items, quantities = zip(*cursor.execute("SELECT " + ",".join(cols) + " FROM " +  table).fetchall())
+	@__load.register(sparse.csc.csc_matrix)
+	def _(matrix, self):
+		print("sparse matrix")
+	
+	@__load.register(numpy.ndarray)
+	def _(matrix, self):
+		print("numpy array")
+
+	def __to_matrix(self, conn_cursor, table):
+		cols = [x[1] for x in conn_cursor.execute("PRAGMA table_info(" + table + ");").fetchall()[0:3]];
+		users, items, quantities = zip(*conn_cursor.execute("SELECT " + ",".join(cols) + " FROM " +  table).fetchall())
 		self.__user_map = list(set(users))
 		self.__item_map = list(set(items))
 		
