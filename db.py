@@ -16,15 +16,17 @@ class DBApi:
 		for index, item in enumerate(self.__item_map):
 			print("Item: " + str(index) + "->" + str(item))
 
-	def load(self, db_file, table):
-		return DBApi.__load(db_file, self, table)
+	def load(self, db_file, table=False):
+		if table:
+			return DBApi.__load(db_file, self, table)
+		return DBApi.__load(db_file, self)
 
 	@singledispatch
-	def __load(db_file, self, table):
+	def __load(db_file, self, table=False):
 		raise NotImplementedError("Failed to recognize args")
 
 	@__load.register(str)
-	def _(db_file, self, table):
+	def _(db_file, self, table=False):
 		print("db:", db_file, "table:", table)
 		conn = sqlite3.connect(db_file)
 		conn_cursor = conn.cursor()
@@ -33,7 +35,8 @@ class DBApi:
 	@__load.register(sparse.csc.csc_matrix)
 	def _(matrix, self):
 		print("sparse matrix")
-	
+		self.__matrix = matrix
+
 	@__load.register(numpy.ndarray)
 	def _(matrix, self):
 		print("numpy array")
@@ -51,7 +54,7 @@ class DBApi:
 		
 		self.__matrix = sparse.csc_matrix((quantities, (u_list, i_list)), shape=(u_len, i_len))
 
-if __name__ == "__main__":
+def test_cli():
 	try:
 		db_file = sys.argv[1]
 		table = sys.argv[2]
@@ -61,3 +64,28 @@ if __name__ == "__main__":
 	db_api = DBApi()
 	db_api.load(db_file, table)
 	db_api.dump()
+
+def test_sparse():
+	row = numpy.array([0, 0, 1, 2, 2, 2])
+	col = numpy.array([0, 2, 2, 0, 1, 2])
+	data = numpy.array([1, 2, 3, 4, 5, 6])
+	matrix = sparse.csc_matrix((data, (row, col)), shape=(3, 3))
+	print(type(matrix))
+	db_api = DBApi()
+	db_api.load(matrix)
+	db_api.dump()
+
+def test_numpy():
+	row = numpy.array([0, 0, 1, 2, 2, 2])
+	col = numpy.array([0, 2, 2, 0, 1, 2])
+	data = numpy.array([1, 2, 3, 4, 5, 6])
+	matrix = sparse.csc_matrix((data, (row, col)), shape=(3, 3)).toarray()
+	print(type(matrix))
+	db_api = DBApi()
+	db_api.load(matrix)
+	db_api.dump()
+
+if __name__ == "__main__":
+	test_cli()
+	test_sparse()
+	test_numpy()
