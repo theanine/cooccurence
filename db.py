@@ -6,6 +6,13 @@ from scipy import sparse
 from itertools import count
 from collections import defaultdict
 
+def dump(matrix, user_map, item_map):
+	print matrix
+	for index, user in enumerate(user_map):
+		print("User: " + str(index) + "->" + str(user))
+	for index, item in enumerate(item_map):
+		print("Item: " + str(index) + "->" + str(item))
+
 def to_matrix(cur, table):
 	cols = [x[1] for x in cur.execute("PRAGMA table_info(" + table + ");").fetchall()[0:3]];
 
@@ -13,7 +20,7 @@ def to_matrix(cur, table):
 	user_map = list(set(users))
 	item_map = list(set(items))
 	mat = sparse.csc_matrix((quantities, (map(user_map.index, users), map(item_map.index, items))), shape=(len(user_map), len(set(item_map))))
-	print mat
+	dump(mat, user_map, item_map)
 
 def main():
 	try:
