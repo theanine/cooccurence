@@ -68,20 +68,20 @@ def test_cli():
 	db_api.dump()
 
 def test_sparse():
-	row = numpy.array([0, 0, 1, 2, 2, 2])
-	col = numpy.array([0, 2, 2, 0, 1, 2])
+	row = numpy.array([9999, 9999, 1, 2, 2, 2])
+	col = numpy.array([9999, 2, 2, 9999, 1, 2])
 	data = numpy.array([1, 2, 3, 4, 5, 6])
-	matrix = sparse.csc_matrix((data, (row, col)), shape=(3, 3))
+	matrix = sparse.csc_matrix((data, (row, col)), shape=(10000, 10000))
 	print(type(matrix))
 	db_api = DBApi()
 	db_api.load(matrix)
 	db_api.dump()
 
 def test_numpy():
-	row = numpy.array([0, 0, 1, 2, 2, 2])
-	col = numpy.array([0, 2, 2, 0, 1, 2])
+	row = numpy.array([9999, 9999, 1, 2, 2, 2])
+	col = numpy.array([9999, 2, 2, 9999, 1, 2])
 	data = numpy.array([1, 2, 3, 4, 5, 6])
-	matrix = sparse.csc_matrix((data, (row, col)), shape=(3, 3)).toarray()
+	matrix = sparse.csc_matrix((data, (row, col)), shape=(10000, 10000)).toarray()
 	print(type(matrix))
 	db_api = DBApi()
 	db_api.load(matrix)
