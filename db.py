@@ -44,18 +44,18 @@ class DBApi:
 		self.__from_sql(conn_cursor, table)
 
 	@__load.register(sparse.csc_matrix)
-	def _(matrix, self, maps=(None, None)):
+	def _(matrix, self):
 		print("sparse matrix")
 		self.__matrix = matrix
-		self.__user_map = maps[0] if maps[0] else range(matrix.shape[0])
-		self.__item_map = maps[1] if maps[1] else range(matrix.shape[1])
+		self.__user_map = list(set(matrix.nonzero()[0]))
+		self.__item_map = list(set(matrix.nonzero()[1]))
 			
 
 	@__load.register(numpy.ndarray)
-	def _(matrix, self, maps=(None, None)):
+	def _(matrix, self):
 		self.__matrix = sparse.csc_matrix(numpy.asmatrix(matrix))
-		self.__user_map = maps[0] if maps[0] else range(matrix.shape[0])
-		self.__item_map = maps[1] if maps[1] else range(matrix.shape[1])
+		self.__user_map = list(set(matrix.nonzero()[0]))
+		self.__item_map = list(set(matrix.nonzero()[1]))
 
 	def __from_sql(self, conn_cursor, table):
 		cols = [x[1] for x in conn_cursor.execute("PRAGMA table_info(" + table + ");").fetchall()[0:3]];
@@ -80,7 +80,7 @@ def test_sparse():
 	matrix = sparse.csc_matrix((data, (row, col)), shape=(10000, 10000))
 	print(type(matrix))
 	db_api = DBApi()
-	db_api.load(matrix, (u, i))
+	db_api.load(matrix)
 	db_api.dump()
 
 def test_numpy():
@@ -88,9 +88,9 @@ def test_numpy():
 	col = numpy.array([9999, 2, 2, 9999, 1, 2])
 	data = numpy.array([1, 2, 3, 4, 5, 6])
 	matrix = sparse.csc_matrix((data, (row, col)), shape=(10000, 10000)).toarray()
-	print(type(matrix.toarray()))
+	print(type(matrix))
 	db_api = DBApi()
-	db_api.load(matrix.toarray(), (u, i))
+	db_api.load(matrix)
 	db_api.dump()
 
 if __name__ == "__main__":
