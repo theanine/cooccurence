@@ -5,8 +5,7 @@ import numpy as np
 from scipy import spatial
 from sklearn.metrics import pairwise_distances
 from scipy.spatial.distance import cosine
-
-PREDICTION_MODEL = "b"
+PREDICTION_MODEL = "a"
 
 def matrix_to_perc(matrix):
 	diagonal = np.diagonal(matrix)
@@ -52,13 +51,17 @@ def cooccurence(arr, cos_similarity, in_perc, zero_diag):
 
 def predict(data, target):	
 	switcher = {
-		"a": False,
-		"b": True,
+		"a": (True,  True,  True),
+		"b": (True,  True,  False),
+		"c": (True,  False, True),
+		"d": (True,  False, False),
+		"e": (False, True,  True),
+		"f": (False, True,  False),
+		"g": (False, False, True),
+		"h": (False, False, False),
 	}
 	
-	zero_diag = True
-	in_perc = switcher.get(PREDICTION_MODEL, None)
-	cos_similarity = True
+	(zero_diag, in_perc, cos_similarity) = switcher.get(PREDICTION_MODEL, None)
 	
 	cooccur = cooccurence(data, cos_similarity, in_perc, zero_diag)
 	
