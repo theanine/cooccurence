@@ -3,15 +3,16 @@
 import sys
 import sqlite3
 from scipy import sparse
+from itertools import count
+from collections import defaultdict
 
 def to_matrix(cur, table):
 	cols = map(lambda x:x[1], cur.execute("PRAGMA table_info(" + table + ");").fetchall()[0:3]);
 
-	numrows = cur.execute("SELECT COUNT(DISTINCT " + cols[0] + ") FROM " + table).fetchone()[0]
-	numcols = cur.execute("SELECT COUNT(DISTINCT " + cols [1] + ") FROM " + table).fetchone()[0]
-
 	users, items, quantities = zip(*cur.execute("SELECT " + ",".join(cols) + " FROM " +  table).fetchall())
-	mat = sparse.csc_matrix((quantities, (users, items)), shape=(numrows, numcols))
+	user_map = list(set(users))
+	item_map = list(set(items))
+	mat = sparse.csc_matrix((quantities, (map(user_map.index, users), map(item_map.index, items))), shape=(len(user_map), len(set(item_map))))
 	print mat
 
 def main():
