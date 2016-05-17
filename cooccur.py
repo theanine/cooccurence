@@ -2,24 +2,24 @@
 
 import sys
 import numpy as np
-from scipy import spatial
+from scipy import spatial, sparse
 from sklearn.metrics import pairwise_distances
 from scipy.spatial.distance import cosine
 PREDICTION_MODEL = "a"
 
 def matrix_to_perc(matrix):
-	diagonal = np.diagonal(matrix)
+	diagonal = matrix.diagonal()
 	with np.errstate(divide='ignore', invalid='ignore'):
 		matrix = np.nan_to_num(np.true_divide(matrix, diagonal[:, None]))
 	return matrix
 
 def matrix_zero_diag(matrix):
-	np.fill_diagonal(matrix, 0)
+	matrix.setdiag(0)
 	return matrix
 
 def matrix_cos_similarity(matrix):
 	# squared magnitude of preference vectors
-	square_mag = np.diagonal(matrix)
+	square_mag = matrix.diagonal()
 	
 	# inverse squared magnitude
 	with np.errstate(divide='ignore', invalid='ignore'):
@@ -31,22 +31,27 @@ def matrix_cos_similarity(matrix):
 	# inverse of the magnitude
 	inv_mag = np.sqrt(inv_square_mag)
 
+	#convert to sparse diag matrix
+	inv_mag = sparse.spdiags(inv_mag, 0, len(inv_mag), len(inv_mag))
+
 	# cosine similarity (elementwise multiply by inverse magnitudes)
 	cosine = matrix * inv_mag
 	cosine = cosine.T * inv_mag
 	return cosine
 
 def cooccurence(arr, cos_similarity, in_perc, zero_diag):
-	items = np.array(arr).astype(float)
-	# TODO: replace this with items.dot(items.T).todense() for sparse representation?
-	#       items also must be initialized as a scipy.sparse type
-	matrix = np.dot(items.T, items)
+	items = sparse.csc_matrix(arr).astype(float)
+
+	matrix = items.T.dot(items)
+
 	if cos_similarity:
 		matrix = matrix_cos_similarity(matrix)
 	if in_perc:
 		matrix = matrix_to_perc(matrix)
 	if zero_diag:
 		matrix = matrix_zero_diag(matrix)
+
+	matrix.eliminate_zeros()
 	return matrix
 
 def predict(data, target):	
@@ -65,7 +70,7 @@ def predict(data, target):
 	
 	cooccur = cooccurence(data, cos_similarity, in_perc, zero_diag)
 	
-	prediction = np.dot(cooccur, target)
+	prediction = cooccur.dot(target)
 	
 	if not cos_similarity:
 		prediction = np.true_divide(prediction, len(data))
