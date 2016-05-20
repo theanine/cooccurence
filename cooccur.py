@@ -178,8 +178,7 @@ if __name__ == "__main__":
 	# test2()
 	# test3()
 	
-	#for model in ("a" "b" "c" "d" "e" "f" "g" "h"):
-	for model in ("a"):
+	for model in ("a" "b" "c" "d" "e" "f" "g" "h"):
 		PREDICTION_MODEL = model
 		print("Prediction model: " + model)
 		test4()
