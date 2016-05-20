@@ -9,8 +9,14 @@ PREDICTION_MODEL = "a"
 
 def matrix_to_perc(matrix):
 	diagonal = matrix.diagonal()
-	with np.errstate(divide='ignore', invalid='ignore'):
-		matrix = np.nan_to_num(np.true_divide(matrix, diagonal[:, None]))
+	rows, cols = matrix.nonzero()
+	num_points = len(rows)
+	for i in range(num_points):
+		d = diagonal[cols[i]]
+		if d != 0:
+			matrix[rows[i], cols[i]] /= d
+		else:
+			matrix[rows[i], cols[i]] = 0
 	return matrix
 
 def matrix_zero_diag(matrix):
@@ -172,7 +178,8 @@ if __name__ == "__main__":
 	# test2()
 	# test3()
 	
-	for model in ("a" "b" "c" "d" "e" "f" "g" "h"):
+	#for model in ("a" "b" "c" "d" "e" "f" "g" "h"):
+	for model in ("a"):
 		PREDICTION_MODEL = model
 		print("Prediction model: " + model)
 		test4()
