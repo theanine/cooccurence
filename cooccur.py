@@ -12,7 +12,7 @@ def matrix_to_perc(matrix):
 	rows, cols = matrix.nonzero()
 	num_points = len(rows)
 	for i in range(num_points):
-		d = diagonal[cols[i]]
+		d = diagonal[rows[i]]
 		if d != 0:
 			matrix[rows[i], cols[i]] /= d
 		else:
