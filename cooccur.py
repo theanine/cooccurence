@@ -10,15 +10,19 @@ PREDICTION_MODEL = "c"
 def to_pseudo_unique(data):
 	arr = np.array(data)
 	maxes = []
-	for i in range(len(arr[0])):
+	num_cols = len(arr[0])
+	for i in range(num_cols):
 		m = max(arr[:,i])
 		maxes.append(m if m != 0 else 1)
-	new_data = np.zeros((len(arr), sum(maxes)))
+	new_arr = np.zeros((len(arr), sum(maxes)))
 	rows, cols = arr.nonzero()
-	for i in range(len(rows)):
-		for offset in range(arr[rows[i], cols[i]]):
-			new_data[rows[i], (sum(maxes[:cols[i]]) + offset)] = 1
-	return new_data
+	num_nonzero = len(rows)
+	for i in range(num_nonzero):
+		val = arr[rows[i], cols[i]]
+		for offset in range(val):
+			new_col = (sum(maxes[:cols[i]]) + offset)
+			new_arr[rows[i], new_col] = 1
+	return new_arr
 
 def matrix_to_perc(matrix):
 	diagonal = matrix.diagonal()
