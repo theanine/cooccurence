@@ -77,6 +77,7 @@ def predict(data, target):
 	cooccur = cooccurence(data, cos_similarity, in_perc, zero_diag)
 	
 	prediction = cooccur.dot(target)
+	#prediction is now an nd-matrix
 	
 	if not cos_similarity:
 		prediction = np.true_divide(prediction, len(data))
