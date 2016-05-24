@@ -175,13 +175,12 @@ def test5():
 		print("prediction: " + str(prediction))
 
 if __name__ == "__main__":
-	# test1()
-	# test2()
-	# test3()
-	
 	for model in ("a" "b" "c" "d" "e" "f" "g" "h"):
 		PREDICTION_MODEL = model
 		print("Prediction model: " + model)
+		test1()
+		test2()
+		test3()
 		test4()
 		test5()
 		
