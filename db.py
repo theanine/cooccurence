@@ -5,6 +5,7 @@ import sqlite3
 import numpy
 from scipy import sparse
 from functools import singledispatch
+import cooccur
 
 class DBApi:
 
@@ -34,6 +35,9 @@ class DBApi:
 		if table:
 			return DBApi.__load(db_file, self, table)
 		return DBApi.__load(db_file, self)
+
+	def predict(self, target):
+		return cooccur.predict(self.__matrix, target)
 
 	@singledispatch
 	def __load(db_file, self, table=False):
@@ -94,7 +98,20 @@ def test_numpy():
 	db_api.load(matrix)
 	db_api.dump()
 
+def test_prediction():
+	matrix = numpy.array([[1, 0, 1, 0],
+	                      [0, 1, 1, 0],
+	                      [0, 1, 0, 0]])
+	test = numpy.array([0, 0, 1, 0])
+	db_api = DBApi()
+	db_api.load(matrix)
+	prediction = db_api.predict(test)
+	print(matrix)
+	print(test)
+	print(prediction)
+
 if __name__ == "__main__":
-	test_cli()
-	test_sparse()
-	test_numpy()
+	# test_cli()
+	# test_sparse()
+	# test_numpy()
+	test_prediction()
