@@ -5,7 +5,7 @@ import numpy as np
 from scipy import spatial, sparse
 from sklearn.metrics import pairwise_distances
 from scipy.spatial.distance import cosine
-PREDICTION_MODEL = "a"
+PREDICTION_MODEL = "c"
 
 def matrix_to_perc(matrix):
 	diagonal = matrix.diagonal()
@@ -178,9 +178,9 @@ if __name__ == "__main__":
 	for model in ("a" "b" "c" "d" "e" "f" "g" "h"):
 		PREDICTION_MODEL = model
 		print("Prediction model: " + model)
-		test1()
-		test2()
+		# test1()
+		# test2()
 		test3()
-		test4()
-		test5()
+		# test4()
+		# test5()
 		
