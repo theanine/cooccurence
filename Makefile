@@ -3,4 +3,4 @@
 all: test
 
 test:
-	@./db.py test.db useritems
+	@./db.py

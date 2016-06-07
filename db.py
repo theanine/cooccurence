@@ -132,19 +132,47 @@ class DBApi:
 
 		return mat
 
-
-def test_cli():
+def test_db():
 	print("==== " + sys._getframe().f_code.co_name + " ====")
-	try:
-		db_file = sys.argv[1]
-		table = sys.argv[2]
-	except IndexError:
-		print("Usage: ./db.py [db] [table]")
-		sys.exit(1)
+	db_file = "test.db"
+	table = "useritems"
 	db_api = DBApi()
 	db_api.load(db_file, table)
-	db_api.dump()
 
+	test = {0:1}
+	prediction = db_api.predict(test)
+	assert(prediction[0] == 0)
+	assert(prediction[1] == 0)
+	assert(prediction[2] == 0.71)
+	for i in range(3, 6667):
+		assert(prediction[i] == 0)
+
+	test = {1:1}
+	prediction = db_api.predict(test)
+	assert(prediction[0] == 0)
+	assert(prediction[1] == 0)
+	assert(prediction[2] == 0.5)
+	for i in range(3, 6667):
+		assert(prediction[i] == 0)
+
+	test = {2:1}
+	prediction = db_api.predict(test)
+	assert(prediction[0] == 0.71)
+	assert(prediction[1] == 0.5)
+	assert(prediction[2] == 0)
+	for i in range(3, 6667):
+		assert(prediction[i] == 0)
+
+	test = {98765:1}
+	prediction = db_api.predict(test)
+	assert(prediction[0] == 0)
+	assert(prediction[1] == 0)
+	assert(prediction[2] == 0)
+	assert(prediction[3] == 0)
+	for i in range(4, 6667):
+		assert(prediction[i] == 1)
+
+# TODO: update this test to use asserts
 def test_sparse():
 	print("==== " + sys._getframe().f_code.co_name + " ====")
 	row = np.array( [9999, 9999, 1,    2, 2, 2])
@@ -156,6 +184,7 @@ def test_sparse():
 	db_api.load(matrix)
 	db_api.dump()
 
+# TODO: update this test to use asserts
 def test_np():
 	print("==== " + sys._getframe().f_code.co_name + " ====")
 	matrix = np.array(([[2, 0, 2, 0],
@@ -167,38 +196,7 @@ def test_np():
 	db_api.load(matrix)
 	db_api.dump()
 
-def test_prediction():
-	print("==== " + sys._getframe().f_code.co_name + " ====")
-	matrix = np.array([[2, 0, 2, 0],
-	                   [0, 1, 1, 0],
-	                   [0, 1, 0, 3]])
-	test = {2:1}
-	db_api = DBApi()
-	db_api.load(matrix)
-	prediction = db_api.predict(test)
-	print(matrix)
-	print(test)
-	print(prediction)
-
-def test_prediction_db():
-	print("==== " + sys._getframe().f_code.co_name + " ====")
-	try:
-		db_file = sys.argv[1]
-		table = sys.argv[2]
-	except IndexError:
-		print("Usage: ./db.py [db] [table]")
-		sys.exit(1)
-	db_api = DBApi()
-	db_api.load(db_file, table)
-	test = {98765:1}
-	prediction = db_api.predict(test)
-	db_api.dump()
-	print(test)
-	print(prediction)
-
 if __name__ == "__main__":
-	# test_cli()
 	# test_sparse()
 	# test_np()
-	# test_prediction()
-	test_prediction_db()
+	test_db()
