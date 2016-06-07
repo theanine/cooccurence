@@ -7,23 +7,6 @@ from sklearn.metrics import pairwise_distances
 from scipy.spatial.distance import cosine
 PREDICTION_MODEL = "c"
 
-def to_pseudo_unique(data):
-	arr = np.array(data)
-	maxes = []
-	num_cols = len(arr[0])
-	for i in range(num_cols):
-		m = max(arr[:,i])
-		maxes.append(m if m != 0 else 1)
-	new_arr = np.zeros((len(arr), sum(maxes)))
-	rows, cols = arr.nonzero()
-	num_nonzero = len(rows)
-	for i in range(num_nonzero):
-		val = arr[rows[i], cols[i]]
-		for offset in range(val):
-			new_col = (sum(maxes[:cols[i]]) + offset)
-			new_arr[rows[i], new_col] = 1
-	return new_arr
-
 def matrix_to_perc(matrix):
 	diagonal = matrix.diagonal()
 	rows, cols = matrix.nonzero()
@@ -89,8 +72,6 @@ def predict(data, target):
 		"h": (False, False, False),
 	}
 	
-	data = to_pseudo_unique(data)
-
 	(zero_diag, in_perc, cos_similarity) = switcher.get(PREDICTION_MODEL, None)
 	
 	cooccur = cooccurence(data, cos_similarity, in_perc, zero_diag)
