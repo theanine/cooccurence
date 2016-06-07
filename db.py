@@ -172,6 +172,8 @@ def test_db():
 	for i in range(4, 6667):
 		assert(prediction[i] == 1)
 
+	print("DB Test Passed!")
+
 # TODO: update this test to use asserts
 def test_sparse():
 	print("==== " + sys._getframe().f_code.co_name + " ====")
