@@ -180,8 +180,25 @@ def test_prediction():
 	print(test)
 	print(prediction)
 
+def test_prediction_db():
+	print("==== " + sys._getframe().f_code.co_name + " ====")
+	try:
+		db_file = sys.argv[1]
+		table = sys.argv[2]
+	except IndexError:
+		print("Usage: ./db.py [db] [table]")
+		sys.exit(1)
+	db_api = DBApi()
+	db_api.load(db_file, table)
+	test = {98765:1}
+	prediction = db_api.predict(test)
+	db_api.dump()
+	print(test)
+	print(prediction)
+
 if __name__ == "__main__":
-	#test_cli()
-	#test_sparse()
-	#test_np()
-	test_prediction()
+	# test_cli()
+	# test_sparse()
+	# test_np()
+	# test_prediction()
+	test_prediction_db()
