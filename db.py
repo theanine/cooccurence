@@ -147,9 +147,9 @@ def test_cli():
 
 def test_sparse():
 	print("==== " + sys._getframe().f_code.co_name + " ====")
-	row = np.array([9999, 9999, 1,    2, 2, 2])
-	col = np.array([9999,    2, 2, 9999, 1, 2])
-	data = np.array([  1,    2, 3,    4, 5, 6])
+	row = np.array( [9999, 9999, 1,    2, 2, 2])
+	col = np.array( [9999,    2, 2, 9999, 1, 2])
+	data = np.array([   1,    2, 3,    4, 5, 6])
 	matrix = sparse.csc_matrix((data, (row, col)), shape=(10000, 10000))
 	print(type(matrix))
 	db_api = DBApi()
@@ -159,8 +159,8 @@ def test_sparse():
 def test_np():
 	print("==== " + sys._getframe().f_code.co_name + " ====")
 	matrix = np.array(([[2, 0, 2, 0],
-	        					 [0, 1, 1, 0],
-	       						 [0, 1, 0, 3]]))
+	                    [0, 1, 1, 0],
+	                    [0, 1, 0, 3]]))
 	print(matrix)
 	print(type(matrix))
 	db_api = DBApi()
@@ -170,8 +170,8 @@ def test_np():
 def test_prediction():
 	print("==== " + sys._getframe().f_code.co_name + " ====")
 	matrix = np.array([[2, 0, 2, 0],
-	        					 [0, 1, 1, 0],
-	       						 [0, 1, 0, 3]])
+	                   [0, 1, 1, 0],
+	                   [0, 1, 0, 3]])
 	test = {2:1}
 	db_api = DBApi()
 	db_api.load(matrix)
