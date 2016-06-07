@@ -80,6 +80,9 @@ class DBApi:
 		if self.__index_to_item_map:
 			for index, item in self.__index_to_item_map.items():
 				print("Index: " + str(index) + "-> Item:" + str(item))
+		if self.__item_to_index_map:
+			for index, item in self.__item_to_index_map.items():
+				print("Item: " + str(index) + "-> Index:" + str(item))
 
 	def load(self, db_file, table=False):
 		if table:
@@ -90,7 +93,14 @@ class DBApi:
 
 	def predict(self, target):
 		target_mat = self.target_map_to_matrix(target)
-		return cooccur.predict(self.__matrix, target_mat)
+		prediction = cooccur.predict(self.__matrix, target_mat)
+		prediction = {i: prediction[i][0] for i in range(len(prediction))}
+		prediction = {x:y for x,y in prediction.items() if y!=0}
+		if self.__index_to_item_map:
+			prediction = {self.__index_to_item_map[x]:y for x,y in prediction.items()}
+		# NOTE: should we sort the list somehow? 
+		# prediction = sorted(prediction, key=prediction.__getitem__, reverse=True)
+		return prediction
 
 	@singledispatch
 	def __load(db_file, self, table=False):
@@ -198,7 +208,19 @@ def test_np():
 	db_api.load(matrix)
 	db_api.dump()
 
-if __name__ == "__main__":
+def run_tests():
 	# test_sparse()
 	# test_np()
 	test_db()
+
+if __name__ == "__main__":
+	# run_tests()
+	
+	db_file = "test.db"
+	table = "useritems"
+	db_api = DBApi()
+	db_api.load(db_file, table)
+
+	test = {0:1}
+	prediction = db_api.predict(test)
+	print(prediction)
