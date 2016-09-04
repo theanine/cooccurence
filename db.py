@@ -26,6 +26,7 @@ class DBApi:
 		return user_map, item_map, matrix
 
 	def convert_to_pseudo_unique(self):
+		# TODO: this code is shit, rewrite it.
 		arr = self.__matrix
 
 		# get max value in each column
@@ -43,16 +44,14 @@ class DBApi:
 		num_nonzero = len(rows)
 		for i in range(num_nonzero):
 			val = arr[rows[i], cols[i]]
-			new_base_col = sum(maxes[:cols[i]])
+			index = cols[i]
+			new_base_col = sum(maxes[:index])
 			for offset in range(val):
 				new_offset_col = (new_base_col + offset)
+				# TODO: Changing the sparsity structure of a csc_matrix is expensive. lil_matrix is more efficient.
 				new_arr[rows[i], new_offset_col] = 1
-
-		# make new item map
-		new_col = 0
-		for col, m in enumerate(maxes):
-			new_item_map[new_col] = self.__index_to_item_map[col] if self.__index_to_item_map else col
-			new_col += m
+				item = self.__index_to_item_map[index]
+				new_item_map[new_offset_col] = item
 
 		self.update(self.__user_map, new_item_map, new_arr)
 
@@ -60,7 +59,10 @@ class DBApi:
 		self.__matrix = matrix
 		self.__user_map = user_map
 		self.__index_to_item_map = index_to_item_map
-		self.__item_to_index_map = dict(map(reversed, index_to_item_map.items())) if index_to_item_map else None
+		self.__item_to_index_map = {}
+		for k, v in index_to_item_map.items():
+			if v not in self.__item_to_index_map.keys():
+				self.__item_to_index_map[v] = k
 		self.__item_to_len_map = None
 
 		if self.__item_to_index_map:
@@ -80,6 +82,9 @@ class DBApi:
 		if self.__index_to_item_map:
 			for index, item in self.__index_to_item_map.items():
 				print("Index: " + str(index) + "-> Item:" + str(item))
+		if self.__item_to_index_map:
+			for index, item in self.__item_to_index_map.items():
+				print("Item: " + str(index) + "-> Index:" + str(item))
 
 	def load(self, db_file, table=False):
 		if table:
@@ -90,7 +95,17 @@ class DBApi:
 
 	def predict(self, target):
 		target_mat = self.target_map_to_matrix(target)
-		return cooccur.predict(self.__matrix, target_mat)
+		prediction = cooccur.predict(self.__matrix, target_mat)
+		prediction = {i: prediction[i][0] for i in range(len(prediction))}
+		prediction = {x:y for x,y in prediction.items() if y!=0}
+		if self.__index_to_item_map:
+			if len(prediction.items()) < 10:
+				for x,y in prediction.items():
+					print(x, "=>", y)
+			prediction = {self.__index_to_item_map[x]:y for x,y in prediction.items()}
+		# NOTE: should we sort the list somehow? 
+		# prediction = sorted(prediction, key=prediction.__getitem__, reverse=True)
+		return prediction
 
 	@singledispatch
 	def __load(db_file, self, table=False):
@@ -113,6 +128,7 @@ class DBApi:
 
 	def __from_sql(self, conn_cursor, table):
 		cols = [x[1] for x in conn_cursor.execute("PRAGMA table_info(" + table + ");").fetchall()[0:3]];
+		# zip(*a) is matrix transposition
 		users, items, quantities = zip(*conn_cursor.execute("SELECT " + ",".join(cols) + " FROM " +  table).fetchall())
 		self.update(*self.to_matrix(users, items, quantities))
 
@@ -132,7 +148,7 @@ class DBApi:
 
 		return mat
 
-def test_db():
+def test_db_nums():
 	print("==== " + sys._getframe().f_code.co_name + " ====")
 	db_file = "test.db"
 	table = "useritems"
@@ -141,36 +157,85 @@ def test_db():
 
 	test = {0:1}
 	prediction = db_api.predict(test)
-	assert(prediction[0] == 0)
-	assert(prediction[1] == 0)
-	assert(prediction[2] == 0.71)
-	for i in range(3, 6667):
-		assert(prediction[i] == 0)
+	assert(len(prediction) == 1)
+	for k in prediction:
+		v = prediction[k]
+		assert(k == 2)
+		assert(v == 0.71)
 
 	test = {1:1}
 	prediction = db_api.predict(test)
-	assert(prediction[0] == 0)
-	assert(prediction[1] == 0)
-	assert(prediction[2] == 0.5)
-	for i in range(3, 6667):
-		assert(prediction[i] == 0)
+	assert(len(prediction) == 1)
+	for k in prediction:
+		v = prediction[k]
+		assert(k == 2)
+		assert(v == 0.5)
 
 	test = {2:1}
 	prediction = db_api.predict(test)
-	assert(prediction[0] == 0.71)
-	assert(prediction[1] == 0.5)
-	assert(prediction[2] == 0)
-	for i in range(3, 6667):
-		assert(prediction[i] == 0)
+	assert(len(prediction) == 2)
+	for k in prediction:
+		v = prediction[k]
+		assert(k == 0 or k == 1)
+		if k == 0:
+			assert(v == 0.71)
+		if k == 1:
+			assert(v == 0.5)
 
 	test = {98765:1}
 	prediction = db_api.predict(test)
-	assert(prediction[0] == 0)
-	assert(prediction[1] == 0)
-	assert(prediction[2] == 0)
-	assert(prediction[3] == 0)
-	for i in range(4, 6667):
-		assert(prediction[i] == 1)
+	db_api.dump()
+	assert(len(prediction) == 1)
+	for k in prediction:
+		v = prediction[k]
+		assert(k == 98765)
+		assert(v == 1)
+
+	print("PASSED")
+
+def test_db_words():
+	print("==== " + sys._getframe().f_code.co_name + " ====")
+	db_file = "test.db"
+	table = "worditems"
+	db_api = DBApi()
+	db_api.load(db_file, table)
+
+	test = {'a':1}
+	prediction = db_api.predict(test)
+	assert(len(prediction) == 1)
+	for k in prediction:
+		v = prediction[k]
+		assert(k == 'foo')
+		assert(v == 0.71)
+
+	test = {'trist':1}
+	prediction = db_api.predict(test)
+	assert(len(prediction) == 1)
+	for k in prediction:
+		v = prediction[k]
+		assert(k == 'foo')
+		assert(v == 0.5)
+
+	test = {'foo':1}
+	prediction = db_api.predict(test)
+	assert(len(prediction) == 2)
+	for k in prediction:
+		v = prediction[k]
+		assert(k == 'a' or k == 'trist')
+		if k == 'a':
+			assert(v == 0.71)
+		if k == 'trist':
+			assert(v == 0.5)
+
+	test = {'peesy':1}
+	prediction = db_api.predict(test)
+	assert(len(prediction) == 1)
+	for k in prediction:
+		v = prediction[k]
+		assert(k == 'peesy')
+		assert(v == 1)
+
+	print("PASSED")
 
 # TODO: update this test to use asserts
 def test_sparse():
@@ -196,7 +261,20 @@ def test_np():
 	db_api.load(matrix)
 	db_api.dump()
 
-if __name__ == "__main__":
+def run_tests():
 	# test_sparse()
 	# test_np()
-	test_db()
+	test_db_nums()
+	test_db_words()
+
+if __name__ == "__main__":
+	run_tests()
+	
+	# db_file = "test.db"
+	# table = "useritems"
+	# db_api = DBApi()
+	# db_api.load(db_file, table)
+
+	# test = {0:1}
+	# prediction = db_api.predict(test)
+	# print(prediction)
