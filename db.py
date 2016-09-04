@@ -99,9 +99,6 @@ class DBApi:
 		prediction = {i: prediction[i][0] for i in range(len(prediction))}
 		prediction = {x:y for x,y in prediction.items() if y!=0}
 		if self.__index_to_item_map:
-			if len(prediction.items()) < 10:
-				for x,y in prediction.items():
-					print(x, "=>", y)
 			prediction = {self.__index_to_item_map[x]:y for x,y in prediction.items()}
 		# NOTE: should we sort the list somehow? 
 		# prediction = sorted(prediction, key=prediction.__getitem__, reverse=True)
@@ -184,7 +181,6 @@ def test_db_nums():
 
 	test = {98765:1}
 	prediction = db_api.predict(test)
-	db_api.dump()
 	assert(len(prediction) == 1)
 	for k in prediction:
 		v = prediction[k]
