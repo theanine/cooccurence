@@ -26,8 +26,8 @@ class DBApi:
 		return user_map, item_map, matrix
 
 	def convert_to_pseudo_unique(self):
+		# TODO: this code is shit, rewrite it.
 		arr = self.__matrix
-		print("arr = ", arr)
 
 		# get max value in each column
 		maxes = []
@@ -44,39 +44,25 @@ class DBApi:
 		num_nonzero = len(rows)
 		for i in range(num_nonzero):
 			val = arr[rows[i], cols[i]]
-			new_base_col = sum(maxes[:cols[i]])
+			index = cols[i]
+			new_base_col = sum(maxes[:index])
 			for offset in range(val):
-				print("")
-				print("new_base_col=", new_base_col)
-				print("offset=", offset)
 				new_offset_col = (new_base_col + offset)
-				# /usr/lib/python3/dist-packages/scipy/sparse/compressed.py:698: SparseEfficiencyWarning: Changing the sparsity structure of a csc_matrix is expensive. lil_matrix is more efficient.
+				# TODO: Changing the sparsity structure of a csc_matrix is expensive. lil_matrix is more efficient.
 				new_arr[rows[i], new_offset_col] = 1
-				orig_item = self.__index_to_item_map[new_base_col]
-				new_item_map[new_offset_col] = orig_item
-				print("new_arr[{0}, {1}] = 1".format(rows[i], new_offset_col))
+				item = self.__index_to_item_map[index]
+				new_item_map[new_offset_col] = item
 
-		print("new_arr = ", new_arr)
-		# # make new item map
-		# new_col = 0
-		# for col, m in enumerate(maxes):
-		# 	new_item_map[new_col] = self.__index_to_item_map[col] if self.__index_to_item_map else col
-		# 	new_col += m
-
-		print("new_item_map:", new_item_map)
 		self.update(self.__user_map, new_item_map, new_arr)
 
 	def update(self, user_map, index_to_item_map, matrix):
 		self.__matrix = matrix
 		self.__user_map = user_map
 		self.__index_to_item_map = index_to_item_map
-		print("self.__index_to_item_map=", self.__index_to_item_map)
 		self.__item_to_index_map = {}
 		for k, v in index_to_item_map.items():
 			if v not in self.__item_to_index_map.keys():
 				self.__item_to_index_map[v] = k
-		# self.__item_to_index_map = dict(map(reversed, index_to_item_map.items())) if index_to_item_map else None
-		print("self.__item_to_index_map=", self.__item_to_index_map)
 		self.__item_to_len_map = None
 
 		if self.__item_to_index_map:
@@ -109,13 +95,9 @@ class DBApi:
 
 	def predict(self, target):
 		target_mat = self.target_map_to_matrix(target)
-		print("__matrix:", self.__matrix)
-		print("target_mat", target_mat)
 		prediction = cooccur.predict(self.__matrix, target_mat)
 		prediction = {i: prediction[i][0] for i in range(len(prediction))}
 		prediction = {x:y for x,y in prediction.items() if y!=0}
-		print("prediction:", prediction)
-		print("__index_to_item_map:", self.__index_to_item_map)
 		if self.__index_to_item_map:
 			if len(prediction.items()) < 10:
 				for x,y in prediction.items():
@@ -247,11 +229,10 @@ def test_db_words():
 
 	test = {'peesy':1}
 	prediction = db_api.predict(test)
-	print("prediction=",prediction)
-	assert(len(prediction) == 10-1)
+	assert(len(prediction) == 1)
 	for k in prediction:
 		v = prediction[k]
-		assert(k == 'easy')
+		assert(k == 'peesy')
 		assert(v == 1)
 
 	print("PASSED")
