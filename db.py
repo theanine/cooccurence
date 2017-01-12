@@ -66,6 +66,7 @@ class DBApi:
 		self.__item_to_len_map = None
 
 		if self.__item_to_index_map:
+			# generate map to see # of each item
 			item_cols = sorted(self.__item_to_index_map.values())
 			pairs = zip(item_cols, item_cols[1:]+[self.__matrix.shape[1]])
 			maxes = list(map(lambda pair:pair[1] - pair[0], pairs))
@@ -84,7 +85,7 @@ class DBApi:
 				print("Index: " + str(index) + "-> Item:" + str(item))
 		if self.__item_to_index_map:
 			for index, item in self.__item_to_index_map.items():
-				print("Item: " + str(index) + "-> Index:" + str(item))
+				print("Item: " + str(item) + "-> Index:" + str(index))
 
 	def load(self, db_file, table=False):
 		if table:
@@ -97,7 +98,20 @@ class DBApi:
 		target_mat = self.target_map_to_matrix(target)
 		prediction = cooccur.predict(self.__matrix, target_mat)
 		prediction = {i: prediction[i][0] for i in range(len(prediction))}
-		prediction = {x:y for x,y in prediction.items() if y!=0}
+
+		# give only the prediction of the next item
+		indices_to_keep = []
+		for item,start_index in self.__item_to_index_map.items():
+			if item in target:
+				offset = target[item] - 1
+				num_items = self.__item_to_len_map[item]
+				if num_items > 1 and target[item] + 1 <= num_items:
+					index_to_keep = start_index + offset + 1
+					indices_to_keep.append(index_to_keep)
+			elif item in prediction:
+				indices_to_keep.append(start_index)
+
+		prediction = {x:y for x,y in prediction.items() if y!=0 and x in indices_to_keep}
 		if self.__index_to_item_map:
 			prediction = {self.__index_to_item_map[x]:y for x,y in prediction.items()}
 		# NOTE: should we sort the list somehow? 
